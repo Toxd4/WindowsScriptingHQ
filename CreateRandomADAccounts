@@ -1,0 +1,34 @@
+# Config
+$ADDomain = "domain.local"
+$OU = "OU=users,OU=xy,DC=domain,DC=local"
+$NumberOfAccounts = 5
+
+# Source for random names (example)
+$FirstNames = @("John", "Jane", "Michael", "Emily", "David", "Sophia", "Daniel")
+$LastNames = @("Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller")
+
+# Function to generate a random password
+function Generate-RandomPassword {
+    $characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+    $passwordLength = 10
+    $password = -join ($characters | Get-Random -Count $passwordLength)
+    return $password
+}
+
+# Function to generate a random name
+function Generate-RandomName {
+    $randomFirstName = $FirstNames | Get-Random
+    $randomLastName = $LastNames | Get-Random
+    return $randomFirstName, $randomLastName
+}
+
+# Loop to create the accounts
+for ($i = 1; $i -le $NumberOfAccounts; $i++) {
+    $firstName, $lastName = Generate-RandomName
+    $username = $firstName.ToLower() + "." + $lastName.ToLower() + $i
+    $password = Generate-RandomPassword
+
+    New-ADUser -Name $username -SamAccountName $username -UserPrincipalName ($username + "@" + $ADDomain) -GivenName $firstName -Surname $lastName -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) -Enabled $true -Path $OU
+}
+
+Write-Host "The accounts have been created successfully."
